@@ -35,25 +35,7 @@ LUP_decomposition :: proc(A: matrix[$N, N]$T) -> (LU: matrix[N, N]T, P: [N]int) 
 	}
 
 	for i in 0 ..< N {
-		max_value: T = 0
-		pivot := i
-
-		// Find max value in `i` column.
-		for k in i ..< N {
-			if abs(LU[k, i]) > max_value {
-				max_value = abs(LU[k, i])
-				pivot = k
-			}
-		}
-
-		if max_value == 0 {
-			panic("invalid input")
-		}
-
-		P[i], P[pivot] = P[pivot], P[i]
-		for j in 0 ..< N {
-			LU[i, j], LU[pivot, j] = LU[pivot, j], LU[i, j]
-		}
+		find_pivot(&LU, &P, i)
 
 		for j in (i + 1) ..< N {
 			// Same element as in 'L' matrix.
@@ -66,4 +48,26 @@ LUP_decomposition :: proc(A: matrix[$N, N]$T) -> (LU: matrix[N, N]T, P: [N]int) 
 	}
 
 	return LU, P
+}
+
+find_pivot :: proc(LU: ^matrix[$N, N]$T, P: ^[N]int, i: int) {
+	max_value: T = 0
+	pivot := i
+
+	// Find max value in `i` column.
+	for k in i ..< N {
+		if abs(LU[k, i]) > max_value {
+			max_value = abs(LU[k, i])
+			pivot = k
+		}
+	}
+
+	if max_value == 0 {
+		panic("invalid input")
+	}
+
+	P[i], P[pivot] = P[pivot], P[i]
+	for j in 0 ..< N {
+		LU[i, j], LU[pivot, j] = LU[pivot, j], LU[i, j]
+	}
 }
