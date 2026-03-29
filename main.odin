@@ -46,9 +46,9 @@ main :: proc() {
 				solve(A, b)
 			case 4:
 				fmt.println(
-					"Example System:" +
-					"  4x + 3y - z = 16" +
-					"  0.5x + y + z = 20" +
+					"Example System:\n" +
+					"  4x + 3y - z = 16\n" +
+					"  0.5x + y + z = 20\n" +
 					"  3.5x + z = 24",
 				)
 				A := matrix[3, 3]f64{
