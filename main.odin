@@ -18,47 +18,97 @@ main :: proc() {
 
 	choice: int
 	loop: for {
-		fmt.print("Select matrix size:\n  1. 2x2\n  2. 3x3\n  3. 4x4\n  4. Example\n  0. Exit\n> ")
+		fmt.print(
+			"Select an option:\n" +
+			"  1. Solve 2x2 system\n" +
+			"  2. Solve 3x3 system\n" +
+			"  3. Solve 4x4 system\n" +
+			"  4. Solve system from example\n" +
+			"  0. Exit\n" +
+			"> ",
+		)
 		ok: bool
 		choice, ok = read_choice(&r)
 		if ok {
 			switch choice {
 			case 0:
-				return
+				break loop
 			case 1:
-				solve(&r, 2)
+				A := read_matrix(&r, matrix[2, 2]f64)
+				b := read_vector(&r, 2, "vector 'b'")
+				solve(A, b)
 			case 2:
-				solve(&r, 3)
+				A := read_matrix(&r, matrix[3, 3]f64)
+				b := read_vector(&r, 3, "vector 'b'")
+				solve(A, b)
 			case 3:
-				solve(&r, 4)
+				A := read_matrix(&r, matrix[4, 4]f64)
+				b := read_vector(&r, 4, "vector 'b'")
+				solve(A, b)
 			case 4:
+				fmt.println(
+					"Example System:" +
+					"  4x + 3y - z = 16" +
+					"  0.5x + y + z = 20" +
+					"  3.5x + z = 24",
+				)
 				A := matrix[3, 3]f64{
 					4.0, 3.0, -1.0,
 					0.5, 1.0, 1.0,
 					3.5, 0.0, 1.0,
 				}
 				b := [3]f64{16, 20, 24}
-				if x, has_solution := LUP_solve(A, b); has_solution {
-					fmt.printfln("Found: %s", vector_to_string(x))
-				} else {
-					fmt.println("System has no solution")
-				}
+				solve(A, b)
 			case:
 				fmt.eprintfln("error: unknown option")
 				continue loop
 			}
-			break loop
+			fmt.println()
 		} else {
 			fmt.eprintln("error: invalid input")
 		}
 	}
 }
 
-solve :: proc(r: ^bufio.Reader, $N: int) {
-	A := read_matrix(r, matrix[N, N]f64)
-	b := read_vector(r, N, "vector 'b'")
+print_system :: proc(A: matrix[$N, N]$T, x: [N]T, b: [N]T) {
+	buf := strings.builder_make()
+
+	for i in 0 ..< N {
+		strings.write_string(&buf, "  ")
+		first := true
+
+		for j in 0 ..< N {
+			if A[i, j] != 0 {
+				if first {
+					fmt.sbprintf(&buf, "%g", A[i, j])
+				} else if A[i, j] < 0 {
+					fmt.sbprintf(&buf, " - %g", -A[i, j])
+				} else {
+					fmt.sbprintf(&buf, " + %g", A[i, j])
+				}
+
+				if x[j] != 1 {
+					if x[j] < 0 {
+						fmt.sbprintf(&buf, "*(%g)", x[j])
+					} else {
+						fmt.sbprintf(&buf, "*%g", x[j])
+					}
+				}
+
+				first = false
+			}
+		}
+		if first do strings.write_string(&buf, "0")
+		fmt.sbprintfln(&buf, " = %g", b[i])
+	}
+
+	fmt.println(strings.to_string(buf))
+}
+
+solve :: proc(A: matrix[$N, N]$T, b: [N]T) {
 	if x, has_solution := LUP_solve(A, b); has_solution {
-		fmt.printfln("Found: %s", vector_to_string(x))
+		fmt.printfln("Found: %v", x)
+		print_system(A, x, A * x)
 	} else {
 		fmt.println("System has no solution")
 	}
@@ -118,42 +168,4 @@ split_space :: proc(s: string) -> [dynamic]string {
 	}
 	append(&items, s)
 	return items
-}
-
-matrix_to_string :: proc(
-	A: matrix[$N, $M]$T,
-	allocator := context.temp_allocator,
-	loc := #caller_location,
-) -> (
-	res: string,
-	err: mem.Allocator_Error,
-) #optional_allocator_error {
-	buf := strings.builder_make(allocator = allocator, loc = loc) or_return
-	w := strings.to_writer(&buf)
-	for i in 0 ..< N {
-		fmt.wprintf(w, "[ %+.3f", cast(f64)A[i, 0])
-		for j in 1 ..< M {
-			fmt.wprintf(w, ", %+.3f", cast(f64)A[i, j])
-		}
-		strings.write_string(&buf, " ]\n")
-	}
-	return strings.to_string(buf), nil
-}
-
-vector_to_string :: proc(
-	A: [$N]$T,
-	allocator := context.temp_allocator,
-	loc := #caller_location,
-) -> (
-	res: string,
-	err: mem.Allocator_Error,
-) #optional_allocator_error {
-	buf := strings.builder_make(allocator = allocator, loc = loc) or_return
-	w := strings.to_writer(&buf)
-	fmt.wprintf(w, "[ %+.3f", cast(f64)A[0])
-	for i in 1 ..< N {
-		fmt.wprintf(w, ", %+.3f", cast(f64)A[i])
-	}
-	strings.write_string(&buf, " ]")
-	return strings.to_string(buf), nil
 }
