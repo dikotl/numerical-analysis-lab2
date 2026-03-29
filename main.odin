@@ -106,7 +106,7 @@ print_system :: proc(A: matrix[$N, N]$T, x: [N]T, b: [N]T) {
 
 solve :: proc(A: matrix[$N, N]$T, b: [N]T) {
 	if x, has_solution := LUP_solve(A, b); has_solution {
-		fmt.printfln("Found: %v", x)
+		fmt.printfln("Found: %v\nSolved system:", x)
 		print_system(A, x, A * x)
 	} else {
 		fmt.println("System has no solution")
