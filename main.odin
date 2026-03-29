@@ -3,7 +3,6 @@ package main
 import "core:bufio"
 import "core:fmt"
 import "core:io"
-import "core:mem"
 import "core:os"
 import "core:strconv"
 import "core:strings"
