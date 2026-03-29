@@ -38,8 +38,11 @@ main :: proc() {
 					3.5, 0.0, 1.0,
 				}
 				b := [3]f64{16, 20, 24}
-				x := LUP_solve(A, b)
-				fmt.printfln("Found: %s", vector_to_string(x))
+				if x, has_solution := LUP_solve(A, b); has_solution {
+					fmt.printfln("Found: %s", vector_to_string(x))
+				} else {
+					fmt.println("System has no solution")
+				}
 			case:
 				fmt.eprintfln("error: unknown option")
 				continue loop
@@ -54,8 +57,11 @@ main :: proc() {
 solve :: proc(r: ^bufio.Reader, $N: int) {
 	A := read_matrix(r, matrix[N, N]f64)
 	b := read_vector(r, N, "vector 'b'")
-	x := LUP_solve(A, b)
-	fmt.printfln("Found: %s", vector_to_string(x))
+	if x, has_solution := LUP_solve(A, b); has_solution {
+		fmt.printfln("Found: %s", vector_to_string(x))
+	} else {
+		fmt.println("System has no solution")
+	}
 }
 
 read_choice :: proc(r: ^bufio.Reader) -> (choice: int, ok: bool) {

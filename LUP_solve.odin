@@ -1,7 +1,7 @@
 package main
 
-LUP_solve :: proc(A: matrix[$N, N]$T, b: [N]T) -> (x: [N]T) {
-	LU, P := LUP_decomposition(A)
+LUP_solve :: proc(A: matrix[$N, N]$T, b: [N]T) -> (x: [N]T, has_solution: bool) {
+	LU, P := LUP_decomposition(A) or_return
 	y: [N]T
 
 	// Forward substitution. Solve 'Ly = Pb'
@@ -24,10 +24,10 @@ LUP_solve :: proc(A: matrix[$N, N]$T, b: [N]T) -> (x: [N]T) {
 		x[i] = (y[i] - sum) / LU[i, i]
 	}
 
-	return x
+	return x, true
 }
 
-LUP_decomposition :: proc(A: matrix[$N, N]$T) -> (LU: matrix[N, N]T, P: [N]int) {
+LUP_decomposition :: proc(A: matrix[$N, N]$T) -> (LU: matrix[N, N]T, P: [N]int, ok: bool) {
 	LU = A
 
 	for i in 0 ..< N {
@@ -35,7 +35,7 @@ LUP_decomposition :: proc(A: matrix[$N, N]$T) -> (LU: matrix[N, N]T, P: [N]int) 
 	}
 
 	for i in 0 ..< N {
-		find_pivot(&LU, &P, i)
+		find_pivot(&LU, &P, i) or_return
 
 		for j in (i + 1) ..< N {
 			// Same element as in 'L' matrix.
@@ -47,10 +47,10 @@ LUP_decomposition :: proc(A: matrix[$N, N]$T) -> (LU: matrix[N, N]T, P: [N]int) 
 		}
 	}
 
-	return LU, P
+	return LU, P, true
 }
 
-find_pivot :: proc(LU: ^matrix[$N, N]$T, P: ^[N]int, i: int) {
+find_pivot :: proc(LU: ^matrix[$N, N]$T, P: ^[N]int, i: int) -> bool {
 	max_value: T = 0
 	pivot := i
 
@@ -63,11 +63,13 @@ find_pivot :: proc(LU: ^matrix[$N, N]$T, P: ^[N]int, i: int) {
 	}
 
 	if max_value == 0 {
-		panic("invalid input")
+		return false
 	}
 
 	P[i], P[pivot] = P[pivot], P[i]
 	for j in 0 ..< N {
 		LU[i, j], LU[pivot, j] = LU[pivot, j], LU[i, j]
 	}
+
+	return true
 }
